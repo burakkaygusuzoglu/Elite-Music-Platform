@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useMusicStore } from '@/store/musicStore';
 import { spotifyService } from '@/services/spotify';
@@ -19,7 +19,7 @@ export const useSpotify = () => {
 
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const fetchTopTracks = async (timeRange: TimeRange = 'medium_term') => {
+  const fetchTopTracks = useCallback(async (timeRange: TimeRange = 'medium_term') => {
     if (!accessToken) return;
     
     try {
@@ -32,9 +32,9 @@ export const useSpotify = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken, setLoading, setError, setTopTracks]);
 
-  const fetchTopArtists = async (timeRange: TimeRange = 'medium_term') => {
+  const fetchTopArtists = useCallback(async (timeRange: TimeRange = 'medium_term') => {
     if (!accessToken) return;
     
     try {
@@ -47,9 +47,9 @@ export const useSpotify = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken, setLoading, setError, setTopArtists]);
 
-  const fetchRecentTracks = async () => {
+  const fetchRecentTracks = useCallback(async () => {
     if (!accessToken) return;
     
     try {
@@ -62,9 +62,9 @@ export const useSpotify = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken, setLoading, setError, setRecentTracks]);
 
-  const fetchAudioFeatures = async (trackIds: string[]) => {
+  const fetchAudioFeatures = useCallback(async (trackIds: string[]) => {
     if (!accessToken) return null;
     
     try {
@@ -73,9 +73,9 @@ export const useSpotify = () => {
       console.error('Failed to fetch audio features:', error);
       return null;
     }
-  };
+  }, [accessToken]);
 
-  const fetchRecommendations = async (seedTracks?: string[], seedArtists?: string[]) => {
+  const fetchRecommendations = useCallback(async (seedTracks?: string[], seedArtists?: string[]) => {
     if (!accessToken) return null;
     
     try {
@@ -84,17 +84,20 @@ export const useSpotify = () => {
       console.error('Failed to fetch recommendations:', error);
       return null;
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
     if (accessToken && !isInitialized) {
       // Fetch initial data
-      fetchTopTracks('medium_term');
-      fetchTopArtists('medium_term');
-      fetchRecentTracks();
+      const loadInitialData = async () => {
+        await fetchTopTracks('medium_term');
+        await fetchTopArtists('medium_term');
+        await fetchRecentTracks();
+      };
+      loadInitialData();
       setIsInitialized(true);
     }
-  }, [accessToken, isInitialized]);
+  }, [accessToken, isInitialized, fetchTopTracks, fetchTopArtists, fetchRecentTracks]);
 
   return {
     topTracks,
