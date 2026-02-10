@@ -61,7 +61,7 @@ export const Stats = () => {
       }
     };
     loadAudioFeatures();
-  }, [topTracks, timeRange]);
+  }, [topTracks, timeRange, fetchAudioFeatures]);
 
   const timeRangeOptions: { value: TimeRange; label: string }[] = [
     { value: 'short_term', label: 'Last 4 Weeks' },
